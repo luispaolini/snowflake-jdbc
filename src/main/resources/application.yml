@@ -1,0 +1,16 @@
+spring:
+  main:
+    allow-bean-definition-overriding: true
+  datasource:
+    driverClassName: "${DATASOURCE_DRIVER_CLASS:net.snowflake.client.jdbc.SnowflakeDriver}"
+    jdbc-url: "${DATASOURCE_URL:jdbc:snowflake://wy30651.us-east-2.aws.snowflakecomputing.com/?warehouse=DEMO&db=DEMO_DATA&schema=DEMO}"
+    username: "${DATASOURCE_USERNAME:luispaolini}"
+    password: "${DATASOURCE_PASSWORD:#Nr43snowflake}"
+    hikari:
+      maximum-pool-size: 15
+      max-lifetime: 600000
+      minimum-idle: 5
+      idle-timeout: 10000
+      connection-timeout: 20000
+      auto-commit: true
+      connection-init-sql: SELECT 1

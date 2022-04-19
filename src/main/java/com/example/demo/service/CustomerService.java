@@ -1,14 +1,19 @@
 package com.example.demo.service;
 
+import ca.uhn.fhir.parser.IParser;
 import com.example.demo.model.Customer;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
+import org.hl7.fhir.r4.model.Bundle;
+import org.hl7.fhir.r4.model.Procedure;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Service;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -19,32 +24,41 @@ import java.util.List;
 @AllArgsConstructor
 public class CustomerService {
 
+    @Autowired
+    private IParser parser;
+
     private final JdbcTemplate jdbcTemplate;
     final String SQL = "CALL SP_GET_CUSTOMER_JSON(60001)";
 
-    public List<Customer> getCustomerProcJson() {
-        return jdbcTemplate.query(SQL, new ResultSetExtractor<List<Customer>>() {
+    public Procedure getCustomerProcJson() {
+        return jdbcTemplate.query(SQL, new ResultSetExtractor<Procedure>() {
             @Override
-            public List<Customer> extractData(ResultSet rs) throws SQLException, DataAccessException {
-                List<Customer> list = new ArrayList<>();
-
+            public Procedure extractData(ResultSet rs) throws SQLException, DataAccessException {
                 try {
-                    if (rs.next()) {
-                        list = convertToCustomer(rs.getString(1));
-                    }
+                    return convertToCustomer(
+                            "  {\n" +
+                                    "    \"code\": null,\n" +
+                                    "    \"identifier\": [{\"value\": \"9399600000000029\"}],\n" +
+                                    "    \"performedDateTime\": \"2019-03-08T00:00:00.000\",\n" +
+                                    "    \"resourceType\": \"Procedure\",\n" +
+                                    "    \"status\": \"completed\",\n" +
+                                    "    \"subject\": {\"identifier\": {\"value\": \"9399600000000029\"}}\n" +
+                                    "  }");
                 } catch (JsonProcessingException e) {
-                    throw new RuntimeException(e);
+                    e.printStackTrace();
                 }
-                return list;
+
+                return null;
             }
         });
     }
 
-    public List<Customer> convertToCustomer(String customerData) throws JsonProcessingException {
+    public Procedure convertToCustomer(String customerData) throws JsonProcessingException {
 
-        ObjectMapper objectMapper = new ObjectMapper();
+        Procedure bundle = parser.parseResource(Procedure.class, customerData);
+        return bundle;
 
-        return objectMapper.readValue(customerData, new TypeReference<List<Customer>>() {});
+        //return objectMapper.readValue(customerData, new TypeReference<List<Customer>>() {});
     }
 }
 

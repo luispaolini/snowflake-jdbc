@@ -21,8 +21,30 @@ import java.util.List;
 public class CustomerService {
 
     private final JdbcTemplate jdbcTemplate;
-    final String SQL = "CALL SP_GET_CUSTOMER_JSON(60001)";
+    final String SQL = "SELECT C_CUSTKEY, C_NAME, C_ADDRESS FROM TABLE(GETCUSTOMERS(60001))";
 
+    public List<Customer> getCustomerTableFunction() {
+        return jdbcTemplate.query(SQL, new ResultSetExtractor<List<Customer>>() {
+            @Override
+            public List<Customer> extractData(ResultSet rs) throws SQLException, DataAccessException {
+                List<Customer> list = new ArrayList<>();
+
+                try {
+                    while (rs.next()) {
+                        Customer customer = new Customer();
+                        customer.setCCustkey(rs.getLong(1));
+                        customer.setCName(rs.getString(2));
+                        customer.setCAddress(rs.getString(3));
+
+                        list.add(customer);
+                    }
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+                return list;
+            }
+        });
+    }
     public List<Customer> getCustomerProcJson() {
         return jdbcTemplate.query(SQL, new ResultSetExtractor<List<Customer>>() {
             @Override

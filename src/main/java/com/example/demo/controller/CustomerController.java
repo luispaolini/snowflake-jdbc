@@ -20,7 +20,7 @@ public class CustomerController {
     @GetMapping
     public List getCustomers() {
 
-        return customerService.getCustomerProcJson();
+        return customerService.getCustomerTableFunction();
 
     }
 }
